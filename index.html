@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Screening Dot Phrase Generator</title>
+<style>
+  :root {
+    --blue: #1e40af;
+    --blue-hover: #1e3a8a;
+    --blue-light: #dbeafe;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-400: #94a3b8;
+    --gray-600: #475569;
+    --gray-800: #1e293b;
+    --green: #16a34a;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-800);
+    min-height: 100vh;
+  }
+  header {
+    background: var(--blue);
+    color: white;
+    padding: 20px 24px;
+    text-align: center;
+  }
+  header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  header p { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+  main {
+    max-width: 740px;
+    margin: 20px auto;
+    padding: 0 16px 32px;
+  }
+  .controls {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    display: flex;
+    gap: 24px;
+    align-items: end;
+    flex-wrap: wrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-600);
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 90px;
+    padding: 9px 12px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gray-800);
+    outline: none;
+    transition: border 0.15s;
+  }
+  .field input:focus { border-color: var(--blue); }
+  .toggle { display: flex; }
+  .toggle button {
+    padding: 9px 22px;
+    border: 1.5px solid var(--gray-200);
+    background: white;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .toggle button:first-child { border-radius: 8px 0 0 8px; }
+  .toggle button:last-child { border-radius: 0 8px 8px 0; border-left: 0; }
+  .toggle button.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: white;
+  }
+  .toggle button:not(.active):hover { background: var(--gray-50); }
+  .output-box {
+    margin-top: 16px;
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+  }
+  .toolbar span { font-size: 13px; font-weight: 600; color: var(--gray-600); }
+  .copy-btn {
+    padding: 7px 20px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-width: 90px;
+  }
+  .copy-btn:hover { background: var(--blue-hover); }
+  .copy-btn.ok { background: var(--green); }
+  #output {
+    padding: 18px 22px;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: var(--gray-800);
+    min-height: 300px;
+    cursor: text;
+    -webkit-user-select: all;
+    user-select: all;
+  }
+  .cite {
+    text-align: center;
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-top: 14px;
+  }
+  @media (max-width: 500px) {
+    .controls { gap: 16px; }
+    .toggle button { padding: 9px 16px; font-size: 13px; }
+    #output { font-size: 11.5px; padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Health Screening Dot Phrase Generator</h1>
+  <p>USPSTF &middot; ADA &middot; AACE &middot; ACC/AHA &middot; ASCCP &middot; ACS</p>
+</header>
+
+<main>
+  <div class="controls">
+    <div class="field">
+      <label>Patient Age</label>
+      <input type="number" id="age" min="18" max="110" value="50">
+    </div>
+    <div class="field">
+      <label>Sex</label>
+      <div class="toggle">
+        <button id="btn-F" class="active" onclick="setSex('F')">Female</button>
+        <button id="btn-M" onclick="setSex('M')">Male</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="output-box">
+    <div class="toolbar">
+      <span>Dot Phrase</span>
+      <button class="copy-btn" id="copyBtn" onclick="copyText()">Copy</button>
+    </div>
+    <div id="output"></div>
+  </div>
+
+  <p class="cite">Source: Primary Care Health Screening &amp; Maintenance &ndash; Emily Stephens</p>
+</main>
+
+<script>
+let sex = 'F';
+
+function setSex(s) {
+  sex = s;
+  document.getElementById('btn-F').classList.toggle('active', s === 'F');
+  document.getElementById('btn-M').classList.toggle('active', s === 'M');
+  generate();
+}
+
+document.getElementById('age').addEventListener('input', generate);
+
+function copyText() {
+  const text = document.getElementById('output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const b = document.getElementById('copyBtn');
+    b.textContent = 'Copied!';
+    b.classList.add('ok');
+    setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('ok'); }, 1500);
+  });
+}
+
+function generate() {
+  const age = parseInt(document.getElementById('age').value);
+  if (isNaN(age) || age < 18) {
+    document.getElementById('output').textContent = 'Enter age ≥ 18.';
+    return;
+  }
+
+  const M = sex === 'M';
+  const F = sex === 'F';
+  const sl = M ? 'M' : 'F';
+  const lines = [];
+  const birthYear = new Date().getFullYear() - age;
+
+  lines.push(`HEALTH MAINTENANCE - ${age}yo ${sl}`);
+  lines.push('');
+
+  function section(title, items) {
+    if (!items.length) return;
+    lines.push(title);
+    items.forEach(i => lines.push('• ' + i));
+    lines.push('');
+  }
+
+  // ================================================================
+  //  CARDIOVASCULAR
+  // ================================================================
+  const cv = [];
+
+  // HTN
+  if (age >= 40) {
+    cv.push('BP: screen annually');
+  } else {
+    cv.push('BP: screen Q3-5y (annually if elevated, obese, or AA)');
+  }
+
+  // Lipids
+  if (age >= 65) {
+    cv.push('Lipids: screen annually');
+  } else if ((M && age >= 45) || (F && age >= 55)) {
+    cv.push('Lipids: screen Q1-2y (Q1y if DM)');
+  } else if (age >= 20) {
+    cv.push('Lipids: screen Q5y (↑ if RFs; Q1y if DM)');
+  }
+
+  // DM
+  if (age >= 35) {
+    cv.push('DM: FPG or A1C Q3y if BMI ≥25 + ≥1 RF, HTN, or hx GDM; annually if pre-DM');
+  } else {
+    cv.push('DM: screen if BMI ≥25 (≥23 Asian) + ≥1 RF, HTN, or hx GDM');
+  }
+
+  // ASCVD risk
+  if (age >= 40 && age <= 75) {
+    cv.push('ASCVD risk: calculate Q4-6y; statin if ≥10%, consider if 7.5-10%');
+  } else if (age > 75) {
+    cv.push('ASCVD risk: calculate Q4-6y; insufficient evidence re statin >75');
+  } else {
+    cv.push('CVD RFs: assess Q4-6y (age, sex, Tchol/HDL, HTN, DM, CKD, smoking, FHx)');
+  }
+
+  // Aspirin
+  if (age >= 40 && age <= 59) {
+    cv.push('Aspirin 1° prev: consider if ASCVD ≥10% w/o ↑ bleeding risk');
+  } else if (age >= 60) {
+    cv.push('Aspirin 1° prev: not recommended (age ≥60)');
+  }
+
+  // BMI
+  cv.push('BMI: screen annually; intensive lifestyle referral if ≥25');
+
+  section('CARDIOVASCULAR', cv);
+
+  // ================================================================
+  //  CANCER SCREENING
+  // ================================================================
+  const ca = [];
+
+  // CRC
+  if (age >= 45 && age <= 75) {
+    ca.push('CRC: colo Q10y, flex sig Q5y, or FIT annually');
+  } else if (age > 75) {
+    ca.push('CRC: individualize per life expectancy');
+  } else if (age >= 25) {
+    ca.push('CRC (if +FHx): start at 40 or 10y prior to family member dx');
+  }
+
+  // Lung
+  if (age >= 50 && age <= 80) {
+    ca.push('Lung: LDCT annually if ≥20 pack-yr hx');
+  }
+
+  // Breast (F)
+  if (F) {
+    if (age >= 40 && age <= 74) {
+      ca.push('Breast: mammogram Q1-2y; BRCA counseling if +FHx');
+    } else if (age > 74) {
+      ca.push('Breast: individualize; BRCA counseling if +FHx');
+    } else {
+      ca.push('Breast: consider BRCA counseling if +FHx');
+    }
+  }
+
+  // Cervical (F)
+  if (F) {
+    if (age >= 21 && age <= 24) {
+      ca.push('Cervical: Pap Q3y');
+    } else if (age >= 25 && age <= 65) {
+      ca.push('Cervical: hrHPV Q5y (pref), co-test Q5y, or Pap Q3y');
+    } else if (age > 65) {
+      ca.push('Cervical: d/c if adequate prior neg screening');
+    }
+  }
+
+  // Prostate (M)
+  if (M) {
+    if (age >= 70) {
+      ca.push('Prostate: recommend against PSA (age ≥70)');
+    } else if (age >= 55) {
+      ca.push('Prostate: SDM re PSA if life expectancy ≥10y (Q2y if <2.5, Q1y if ≥2.5)');
+    } else if (age >= 50) {
+      ca.push('Prostate: discuss PSA risk/benefit Q1-2y if life expectancy ≥10y');
+    } else if (age >= 45) {
+      ca.push('Prostate: discuss PSA if FHx (1st-degree dx <65) or AA');
+    } else if (age >= 40) {
+      ca.push('Prostate: discuss PSA only if strong FHx (>1 1st-degree w/ early CA)');
+    }
+  }
+
+  // AAA (M)
+  if (M && age >= 65 && age <= 75) {
+    ca.push('AAA: one-time US if +tobacco hx');
+  }
+
+  // Anal CA (M, MSM)
+  if (M) {
+    if (age >= 45) {
+      ca.push('Anal CA (if MSM): anal Pap Q1y if HIV+; Q2-3y if HIV−');
+    } else if (age >= 35) {
+      ca.push('Anal CA (if MSM + HIV+): anal Pap Q1y');
+    }
+  }
+
+  section('CANCER SCREENING', ca);
+
+  // ================================================================
+  //  INFECTIOUS DISEASE
+  // ================================================================
+  const id = [];
+
+  if (age >= 15 && age <= 65) {
+    id.push('HIV: screen at least once; repeat per risk');
+  } else if (age > 65) {
+    id.push('HIV: screen per risk assessment');
+  }
+
+  if (age >= 18 && age <= 79) {
+    id.push('HCV: screen at least once; repeat per risk');
+  }
+
+  id.push('HBV: screen if RFs (endemic region, HD, HIV+, IVDU, MSM)');
+  id.push('Latent TB: screen if born/lived in high-risk country or setting');
+  id.push('Syphilis: screen if increased risk');
+
+  if (F && age <= 24) {
+    id.push('GC/CT: screen annually (age ≤24)');
+  } else if (F) {
+    id.push('GC/CT: screen per risk assessment');
+  }
+
+  if (M) {
+    id.push('STIs (if MSM): Q1y; Q3-6mo if high-risk; offer PrEP if at risk for HIV');
+  }
+
+  section('INFECTIOUS DISEASE', id);
+
+  // ================================================================
+  //  BEHAVIORAL HEALTH
+  // ================================================================
+  const bh = [];
+
+  bh.push('Depression: PHQ-2 annually');
+  if (age >= 19 && age <= 64) bh.push('Anxiety: screen (GAD-2/GAD-7)');
+  bh.push('Alcohol: AUDIT-C');
+  bh.push('Tobacco: assess every visit; counsel cessation');
+  bh.push('Drug use: screen via questioning');
+
+  if (F && age < 50) {
+    bh.push('IPV: screen regularly (HITS tool); assess safety');
+  }
+  if (age >= 50) {
+    bh.push('IPV/elder abuse: consider screening');
+  }
+
+  section('BEHAVIORAL HEALTH', bh);
+
+  // ================================================================
+  //  OTHER PREVENTIVE CARE
+  // ================================================================
+  const oth = [];
+
+  // Osteoporosis
+  if (F && age >= 65) {
+    oth.push('Osteoporosis: DXA');
+  } else if (F && age >= 50) {
+    oth.push('Osteoporosis: consider DXA based on FRAX');
+  }
+  if (M && age >= 70) {
+    oth.push('Osteoporosis: DXA');
+  } else if (M && age >= 50) {
+    oth.push('Osteoporosis: consider if RFs (low weight, fracture hx, smoking)');
+  }
+
+  // Falls
+  if (age >= 65) {
+    oth.push('Fall risk: screen annually; PT, vitamin D');
+  }
+
+  // Exercise
+  if (age >= 65) {
+    oth.push('Exercise: 150min/wk mod or 75min/wk vigorous + fall prevention');
+  } else {
+    oth.push('Exercise: 150min/wk mod or 75min/wk vigorous + 2d strength');
+  }
+
+  oth.push('Diet: intensive behavioral counseling if CVD RFs');
+
+  // Contraception / folic acid (F)
+  if (F && age <= 50) {
+    oth.push('Contraception: discuss; folic acid if planning/capable of pregnancy');
+  }
+
+  section('OTHER PREVENTIVE CARE', oth);
+
+  // ================================================================
+  //  IMMUNIZATIONS
+  // ================================================================
+  const vax = [];
+
+  vax.push('COVID-19: updated (2024-25) formula');
+  vax.push(age >= 65 ? 'Influenza: annual high-dose' : 'Influenza: annual');
+  vax.push('Tdap/Td: booster Q10y');
+
+  if (age >= 60) {
+    vax.push('RSV: recommended');
+  }
+
+  if (age >= 50) {
+    vax.push('Shingrix (RZV): 2 doses 2-6mo apart');
+  }
+
+  if (age <= 26) {
+    vax.push('HPV: complete 2-3 dose series if not done');
+  } else if (age <= 45) {
+    vax.push('HPV: SDM if not completed (ages 27-45)');
+  }
+
+  if (age >= 65) {
+    vax.push('PCV20: 1 dose if not vaccinated (or PCV15 → PPSV23)');
+  } else {
+    vax.push('PCV20: if RFs (heart/lung/kidney/liver dz, DM, smoking, immunocomp)');
+  }
+
+  if (age <= 59) {
+    vax.push('Hep B: complete series if not done (universal 19-59)');
+  } else {
+    vax.push('Hep B: if RFs (travel, HCV, HIV, IVDU, sexual exposure, DM)');
+  }
+
+  vax.push('Hep A: if RFs (travel, HIV, MSM, drug use, chronic liver dz)');
+
+  if (birthYear >= 1957) {
+    vax.push('MMR: 1-2 doses if not immune (born ≥1957)');
+  }
+  if (birthYear >= 1980) {
+    vax.push('Varicella: 2 doses if not immune (born ≥1980)');
+  }
+
+  vax.push('Meningococcal: if asplenia, HIV, complement def, travel, dorms');
+
+  section('IMMUNIZATIONS', vax);
+
+  document.getElementById('output').textContent = lines.join('\n').trimEnd();
+}
+
+generate();
+</script>
+</body>
+</html>
