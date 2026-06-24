@@ -278,32 +278,82 @@ function setPastDate(idx, val) {
   updatePaste();
 }
 
-function buildPasteText() {
-  let lines = ['HEALTH MAINTENANCE - ' + currentAge + 'yo ' + currentSex, ''];
-  let sect = null;
-  let lastFreq = null;
+function getNote(item) {
+  const n = document.getElementById('notes-' + item.id);
+  return n ? n.value.trim() : '';
+}
 
-  for (const item of items) {
-    if (item.section !== sect) {
-      if (sect !== null) lines.push('');
-      lines.push(item.section);
-      sect = item.section;
-      lastFreq = null;
+function isNew(item) {
+  return item.newAt > 0 && currentAge === item.newAt;
+}
+
+function buildPasteText() {
+  const current = items.filter(i => i.status === 'done' || i.status === 'past');
+  const deferred = items.filter(i => i.status === 'deferred');
+  const pending = items.filter(i => !i.status);
+
+  const nNew = items.filter(i => isNew(i)).length;
+  const lines = [];
+
+  lines.push('HEALTH MAINTENANCE - ' + currentAge + 'yo ' + currentSex);
+  lines.push('');
+  lines.push('STATUS: ' + current.length + '/' + items.length + ' current | '
+    + deferred.length + ' deferred | ' + pending.length + ' pending'
+    + (nNew ? ' | ' + nNew + ' new at age ' + currentAge : ''));
+
+  if (current.length) {
+    lines.push('');
+    lines.push('CURRENT (no action needed):');
+    for (const item of current) {
+      let date = '';
+      if (item.status === 'done') date = item.doneDate;
+      else if (item.status === 'past') date = item.pastDate || 'date unknown';
+      let line = '  - ' + item.text + ' (' + date + ')';
+      const note = getNote(item);
+      if (note) line += ' [' + note + ']';
+      lines.push(line);
     }
-    if (item.freq !== lastFreq) {
-      lines.push(item.freq === 'routine' ? '  Routine:' : '  One-time/PRN:');
-      lastFreq = item.freq;
-    }
-    let line = '  - ' + item.text;
-    if (item.status === 'done') line += ' -- Completed ' + item.doneDate;
-    else if (item.status === 'past') {
-      line += ' -- Completed' + (item.pastDate ? ' ' + item.pastDate : '');
-    }
-    else if (item.status === 'deferred') line += ' -- Deferred';
-    const n = document.getElementById('notes-' + item.id);
-    if (n && n.value.trim()) line += ' [' + n.value.trim() + ']';
-    lines.push(line);
   }
+
+  if (deferred.length) {
+    lines.push('');
+    lines.push('DEFERRED (follow up needed):');
+    for (const item of deferred) {
+      let line = '  - ' + item.text;
+      const note = getNote(item);
+      if (note) line += ' -- ' + note;
+      if (isNew(item)) line += '  *NEW';
+      lines.push(line);
+    }
+  }
+
+  if (pending.length) {
+    lines.push('');
+    lines.push('GAP LIST (not yet done):');
+    let sect = null;
+    for (const item of pending) {
+      if (item.section !== sect) {
+        lines.push('');
+        lines.push('  ' + item.section + ':');
+        sect = item.section;
+      }
+      let marker = '';
+      if (isNew(item)) marker = '  *NEW';
+      else if (item.freq === 'once') marker = '  +';
+      let line = '    - ' + item.text + marker;
+      const note = getNote(item);
+      if (note) line += ' [' + note + ']';
+      lines.push(line);
+    }
+
+    lines.push('');
+    lines.push('  *NEW = new indication at age ' + currentAge);
+    lines.push('  + = one-time / risk-based');
+  }
+
+  lines.push('');
+  lines.push('PLAN: ___');
+
   return lines.join('\n');
 }
 
