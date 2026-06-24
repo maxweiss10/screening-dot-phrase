@@ -287,72 +287,78 @@ function isNew(item) {
   return item.newAt > 0 && currentAge === item.newAt;
 }
 
+function sectionLabel(section) {
+  const map = {
+    'CARDIOVASCULAR': 'CV',
+    'CANCER SCREENING': 'Cancer',
+    'INFECTIOUS DISEASE': 'ID',
+    'BEHAVIORAL HEALTH': 'Psych',
+    'OTHER PREVENTIVE CARE': 'Prev',
+    'IMMUNIZATIONS': 'Vax'
+  };
+  return map[section] || section;
+}
+
 function buildPasteText() {
-  const current = items.filter(i => i.status === 'done' || i.status === 'past');
-  const deferred = items.filter(i => i.status === 'deferred');
-  const pending = items.filter(i => !i.status);
+  const doneToday = items.filter(i => i.status === 'done');
+  const donePrev = items.filter(i => i.status === 'past');
+  const needed = items.filter(i => !i.status || i.status === 'deferred');
 
-  const nNew = items.filter(i => isNew(i)).length;
   const lines = [];
-
   lines.push('HEALTH MAINTENANCE - ' + currentAge + 'yo ' + currentSex);
-  lines.push('');
-  lines.push('STATUS: ' + current.length + '/' + items.length + ' current | '
-    + deferred.length + ' deferred | ' + pending.length + ' pending'
-    + (nNew ? ' | ' + nNew + ' new at age ' + currentAge : ''));
 
-  if (current.length) {
+  const pad = 8;
+
+  function addSection(title, list, formatItem) {
+    if (!list.length) return;
     lines.push('');
-    lines.push('CURRENT (no action needed):');
-    for (const item of current) {
-      let date = '';
-      if (item.status === 'done') date = item.doneDate;
-      else if (item.status === 'past') date = item.pastDate || 'date unknown';
-      let line = '  - ' + item.text + ' (' + date + ')';
-      const note = getNote(item);
-      if (note) line += ' [' + note + ']';
-      lines.push(line);
+    lines.push(title + ':');
+    const grouped = {};
+    for (const item of list) {
+      const lbl = sectionLabel(item.section);
+      if (!grouped[lbl]) grouped[lbl] = [];
+      grouped[lbl].push(item);
     }
-  }
-
-  if (deferred.length) {
-    lines.push('');
-    lines.push('DEFERRED (follow up needed):');
-    for (const item of deferred) {
-      let line = '  - ' + item.text;
-      const note = getNote(item);
-      if (note) line += ' -- ' + note;
-      if (isNew(item)) line += '  *NEW';
-      lines.push(line);
-    }
-  }
-
-  if (pending.length) {
-    lines.push('');
-    lines.push('GAP LIST (not yet done):');
-    let sect = null;
-    for (const item of pending) {
-      if (item.section !== sect) {
-        lines.push('');
-        lines.push('  ' + item.section + ':');
-        sect = item.section;
+    for (const lbl of Object.keys(grouped)) {
+      const itemTexts = grouped[lbl].map(formatItem);
+      const label = lbl + ':';
+      const spacing = ' '.repeat(Math.max(pad - label.length, 1));
+      lines.push('  ' + label + spacing + itemTexts.join(', '));
+      const notes = [];
+      for (const item of grouped[lbl]) {
+        const note = getNote(item);
+        if (item.status === 'deferred') {
+          const reason = note ? ' -- ' + note : '';
+          notes.push(item.text.split(':')[0] + ' deferred' + reason);
+        } else if (note) {
+          notes.push(note);
+        }
       }
-      let marker = '';
-      if (isNew(item)) marker = '  *NEW';
-      else if (item.freq === 'once') marker = '  +';
-      let line = '    - ' + item.text + marker;
-      const note = getNote(item);
-      if (note) line += ' [' + note + ']';
-      lines.push(line);
+      if (notes.length) {
+        lines.push('  ' + ' '.repeat(pad) + '> ' + notes.join('; '));
+      }
     }
-
-    lines.push('');
-    lines.push('  *NEW = new indication at age ' + currentAge);
-    lines.push('  + = one-time / risk-based');
   }
 
-  lines.push('');
-  lines.push('PLAN: ___');
+  function shortName(item) {
+    let name = item.text.split(':')[0];
+    if (isNew(item)) name += ' (NEW)';
+    return name;
+  }
+
+  addSection('DONE TODAY', doneToday, function(item) {
+    return shortName(item);
+  });
+
+  addSection('DONE PREVIOUSLY', donePrev, function(item) {
+    const name = shortName(item);
+    const date = item.pastDate ? ' (' + item.pastDate + ')' : '';
+    return name + date;
+  });
+
+  addSection('NEEDED', needed, function(item) {
+    return shortName(item);
+  });
 
   return lines.join('\n');
 }
