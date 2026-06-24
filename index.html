@@ -552,7 +552,7 @@ function renderItems() {
       + '</div>'
       + '<div class="item-body">'
       + '<div class="item-top">'
-      + '<span class="item-text">' + item.text + '</span>'
+      + '<span class="item-text">' + (item.text.includes(': ') ? '<b>' + item.text.split(': ')[0] + ':</b> ' + item.text.split(': ').slice(1).join(': ') : item.text) + '</span>'
       + (isNew ? ' <span class="badge-new">NEW at ' + item.newAt + '</span>' : '')
       + ' <span class="status-tag" id="stag-' + item.id + '"></span>'
       + '</div>'
