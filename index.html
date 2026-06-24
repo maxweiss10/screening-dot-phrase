@@ -9,6 +9,7 @@
     --blue: #1e40af; --blue-hover: #1e3a8a; --blue-light: #dbeafe;
     --green: #15803d; --green-light: #dcfce7; --green-border: #86efac;
     --amber: #b45309; --amber-light: #fef3c7; --amber-border: #fcd34d;
+    --purple: #7c3aed; --purple-light: #ede9fe; --purple-border: #c4b5fd;
     --gray-50: #f8fafc; --gray-100: #f1f5f9; --gray-200: #e2e8f0;
     --gray-300: #cbd5e1; --gray-400: #94a3b8; --gray-600: #475569;
     --gray-800: #1e293b; --radius: 10px;
@@ -55,13 +56,7 @@
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 16px; border-bottom: 1px solid var(--gray-200); background: var(--gray-50);
   }
-  .toolbar-label { font-size: 14px; font-weight: 700; color: var(--gray-800); letter-spacing: -0.01em; }
-  .copy-btn {
-    padding: 6px 18px; background: var(--blue); color: white; border: none;
-    border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; min-width: 80px;
-  }
-  .copy-btn:hover { background: var(--blue-hover); }
-  .copy-btn.ok { background: var(--green); }
+  .toolbar-label { font-size: 14px; font-weight: 700; color: var(--gray-800); }
 
   #output { padding: 0 0 8px; }
 
@@ -70,6 +65,11 @@
     padding: 12px 16px 5px; border-top: 1px solid var(--gray-100);
   }
   .section:first-child .section-title { border-top: none; }
+
+  .freq-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: var(--gray-400);
+    padding: 6px 16px 2px 28px; text-transform: uppercase;
+  }
 
   .item {
     display: flex; gap: 8px; padding: 5px 16px 5px 12px; align-items: flex-start;
@@ -82,11 +82,12 @@
   .item-btns { display: flex; gap: 3px; flex-shrink: 0; padding-top: 1px; }
   .item-btns button {
     width: 24px; height: 24px; border-radius: 5px; border: 1.5px solid var(--gray-200);
-    background: white; cursor: pointer; font-size: 12px; display: flex;
+    background: white; cursor: pointer; font-size: 11px; display: flex;
     align-items: center; justify-content: center; color: var(--gray-300); transition: all 0.1s;
   }
   .item-btns button:hover { border-color: var(--gray-300); color: var(--gray-400); }
   .btn-done.active { background: var(--green-light); border-color: var(--green-border); color: var(--green); }
+  .btn-past.active { background: var(--purple-light); border-color: var(--purple-border); color: var(--purple); }
   .btn-defer.active { background: var(--amber-light); border-color: var(--amber-border); color: var(--amber); }
 
   .item-body { flex: 1; min-width: 0; }
@@ -99,12 +100,22 @@
     letter-spacing: 0.06em; vertical-align: middle; white-space: nowrap;
   }
   .status-tag {
-    display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px;
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600; padding: 1px 7px;
     border-radius: 4px; white-space: nowrap;
   }
   .status-tag:empty { display: none; }
   .status-tag.done { background: var(--green-light); color: var(--green); }
+  .status-tag.past { background: var(--purple-light); color: var(--purple); }
   .status-tag.deferred { background: var(--amber-light); color: var(--amber); }
+
+  .past-date-input {
+    border: none; border-bottom: 1px solid var(--purple-border);
+    background: transparent; color: var(--purple); font-size: 11px; font-weight: 600;
+    width: 72px; outline: none; font-family: inherit; padding: 0 2px;
+  }
+  .past-date-input::placeholder { color: var(--purple-border); }
+  .past-date-input:focus { border-bottom-color: var(--purple); }
 
   .item-notes {
     display: block; width: 100%; border: none; border-bottom: 1px dashed transparent;
@@ -115,6 +126,43 @@
   .item-notes:hover { border-bottom-color: var(--gray-200); }
   .item-notes:focus { border-bottom-color: var(--blue); }
   .item-notes:not(:placeholder-shown) { border-bottom-color: var(--gray-300); }
+
+  .paste-section {
+    margin-top: 12px; background: white; border-radius: var(--radius);
+    overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .paste-toolbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; border-bottom: 1px solid var(--gray-200); background: var(--gray-50);
+  }
+  .paste-toolbar span { font-size: 13px; font-weight: 700; color: var(--gray-800); }
+  .copy-btn {
+    padding: 6px 18px; background: var(--blue); color: white; border: none;
+    border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; min-width: 80px;
+  }
+  .copy-btn:hover { background: var(--blue-hover); }
+  .copy-btn.ok { background: var(--green); }
+
+  #pastePreview {
+    width: 100%; border: none; padding: 12px 16px; font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; line-height: 1.6; color: var(--gray-800); background: white;
+    resize: vertical; min-height: 150px; outline: none;
+  }
+
+  .legend {
+    display: flex; gap: 12px; flex-wrap: wrap; padding: 8px 16px;
+    border-bottom: 1px solid var(--gray-200); align-items: center;
+  }
+  .legend-label { font-size: 10px; color: var(--gray-400); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--gray-600); }
+  .legend-swatch {
+    width: 14px; height: 14px; border-radius: 4px; display: flex;
+    align-items: center; justify-content: center; font-size: 9px; font-weight: 700;
+    border: 1.5px solid;
+  }
+  .sw-done { background: var(--green-light); border-color: var(--green-border); color: var(--green); }
+  .sw-past { background: var(--purple-light); border-color: var(--purple-border); color: var(--purple); }
+  .sw-defer { background: var(--amber-light); border-color: var(--amber-border); color: var(--amber); }
 
   .cite { text-align: center; font-size: 10px; color: var(--gray-400); margin-top: 12px; }
 
@@ -151,9 +199,22 @@
   <div class="output-box">
     <div class="toolbar">
       <span class="toolbar-label" id="toolbarLabel">HEALTH MAINTENANCE &mdash; 50yo F</span>
-      <button class="copy-btn" id="copyBtn" onclick="copyText()">Copy to Clipboard</button>
+    </div>
+    <div class="legend">
+      <span class="legend-label">Buttons:</span>
+      <span class="legend-item"><span class="legend-swatch sw-done">✓</span> Today</span>
+      <span class="legend-item"><span class="legend-swatch sw-past">P</span> Past</span>
+      <span class="legend-item"><span class="legend-swatch sw-defer">D</span> Defer</span>
     </div>
     <div id="output"></div>
+  </div>
+
+  <div class="paste-section">
+    <div class="paste-toolbar">
+      <span>📋 Ready to paste into Epic</span>
+      <button class="copy-btn" id="copyBtn" onclick="copyText()">Copy to Clipboard</button>
+    </div>
+    <textarea id="pastePreview" readonly></textarea>
   </div>
 
   <p class="cite">Source: Primary Care Health Screening &amp; Maintenance &ndash; Emily Stephens</p>
@@ -177,52 +238,82 @@ function fmtDate() {
   return `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`;
 }
 
-function toggleDone(idx) {
+function setStatus(idx, newStatus) {
   const item = items[idx];
-  if (item.status === 'done') { item.status = null; item.doneDate = null; }
-  else { item.status = 'done'; item.doneDate = fmtDate(); }
+  if (item.status === newStatus) {
+    item.status = null; item.doneDate = null; item.pastDate = '';
+  } else {
+    item.status = newStatus;
+    if (newStatus === 'done') item.doneDate = fmtDate();
+    if (newStatus !== 'past') item.pastDate = '';
+  }
   updUI(idx);
+  updatePaste();
 }
-function toggleDefer(idx) {
-  const item = items[idx];
-  item.status = item.status === 'deferred' ? null : 'deferred';
-  updUI(idx);
-}
+
 function updUI(idx) {
   const item = items[idx];
-  const el = document.getElementById('item-' + idx);
+  const el = document.getElementById('item-' + item.id);
   el.querySelector('.btn-done').classList.toggle('active', item.status === 'done');
+  el.querySelector('.btn-past').classList.toggle('active', item.status === 'past');
   el.querySelector('.btn-defer').classList.toggle('active', item.status === 'deferred');
-  const tag = document.getElementById('stag-' + idx);
+  const tag = document.getElementById('stag-' + item.id);
   if (item.status === 'done') {
-    tag.textContent = 'Last completed ' + item.doneDate;
+    tag.innerHTML = 'Completed ' + item.doneDate;
     tag.className = 'status-tag done';
+  } else if (item.status === 'past') {
+    tag.innerHTML = 'Completed <input class="past-date-input" id="pdate-' + item.id + '" placeholder="date" value="' + (item.pastDate || '') + '" oninput="setPastDate(' + item.id + ', this.value)">';
+    tag.className = 'status-tag past';
   } else if (item.status === 'deferred') {
-    tag.textContent = 'Deferred';
+    tag.innerHTML = 'Deferred';
     tag.className = 'status-tag deferred';
   } else {
-    tag.textContent = '';
+    tag.innerHTML = '';
     tag.className = 'status-tag';
   }
 }
 
-function copyText() {
+function setPastDate(idx, val) {
+  items[idx].pastDate = val;
+  updatePaste();
+}
+
+function buildPasteText() {
   let lines = ['HEALTH MAINTENANCE - ' + currentAge + 'yo ' + currentSex, ''];
   let sect = null;
+  let lastFreq = null;
+
   for (const item of items) {
     if (item.section !== sect) {
       if (sect !== null) lines.push('');
       lines.push(item.section);
       sect = item.section;
+      lastFreq = null;
     }
-    let line = '• ' + item.text;
-    if (item.status === 'done') line += ' -- Last completed ' + item.doneDate;
-    if (item.status === 'deferred') line += ' -- Deferred';
+    if (item.freq !== lastFreq) {
+      lines.push(item.freq === 'routine' ? '  Routine:' : '  One-time/PRN:');
+      lastFreq = item.freq;
+    }
+    let line = '  - ' + item.text;
+    if (item.status === 'done') line += ' -- Completed ' + item.doneDate;
+    else if (item.status === 'past') {
+      line += ' -- Completed' + (item.pastDate ? ' ' + item.pastDate : '');
+    }
+    else if (item.status === 'deferred') line += ' -- Deferred';
     const n = document.getElementById('notes-' + item.id);
-    if (n && n.value.trim()) line += ' -- ' + n.value.trim();
+    if (n && n.value.trim()) line += ' [' + n.value.trim() + ']';
     lines.push(line);
   }
-  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+  return lines.join('\n');
+}
+
+function updatePaste() {
+  document.getElementById('pastePreview').value = buildPasteText();
+}
+
+function copyText() {
+  const text = buildPasteText();
+  navigator.clipboard.writeText(text).then(() => {
     const b = document.getElementById('copyBtn');
     b.textContent = 'Copied!'; b.classList.add('ok');
     setTimeout(() => { b.textContent = 'Copy to Clipboard'; b.classList.remove('ok'); }, 1500);
@@ -238,8 +329,8 @@ function generate() {
   const birthYear = new Date().getFullYear() - age;
   items = [];
 
-  function add(section, text, newAt) {
-    items.push({ id: items.length, section, text, newAt: newAt || 0, status: null, doneDate: null });
+  function add(section, text, newAt, freq) {
+    items.push({ id: items.length, section, text, newAt: newAt || 0, freq: freq || 'routine', status: null, doneDate: null, pastDate: '' });
   }
 
   // ── CARDIOVASCULAR ──
@@ -257,39 +348,39 @@ function generate() {
   else if (age > 75) add('CARDIOVASCULAR', 'ASCVD risk: calculate Q4-6y; insufficient evidence re statin >75', 76);
   else add('CARDIOVASCULAR', 'CVD RFs: assess Q4-6y', 0);
 
-  if (age >= 40 && age <= 59) add('CARDIOVASCULAR', 'Aspirin 1° prev: consider if ASCVD ≥10% w/o ↑ bleeding risk', 40);
-  else if (age >= 60) add('CARDIOVASCULAR', 'Aspirin 1° prev: not recommended (age ≥60)', 60);
+  if (age >= 40 && age <= 59) add('CARDIOVASCULAR', 'Aspirin 1° prev: consider if ASCVD ≥10% w/o ↑ bleeding risk', 40, 'once');
+  else if (age >= 60) add('CARDIOVASCULAR', 'Aspirin 1° prev: not recommended (age ≥60)', 60, 'once');
 
   add('CARDIOVASCULAR', 'BMI: screen annually; intensive lifestyle referral if ≥25', 0);
 
   // ── CANCER SCREENING ──
   if (age >= 45 && age <= 75) add('CANCER SCREENING', 'CRC: colo Q10y, flex sig Q5y, or FIT annually', 45);
   else if (age > 75) add('CANCER SCREENING', 'CRC: individualize per life expectancy', 76);
-  else if (age >= 25) add('CANCER SCREENING', 'CRC (if +FHx): start at 40 or 10y prior to family member dx', 25);
+  else if (age >= 25) add('CANCER SCREENING', 'CRC (if +FHx): start at 40 or 10y prior to family member dx', 25, 'once');
 
   if (age >= 50 && age <= 80) add('CANCER SCREENING', 'Lung: LDCT annually if ≥20 pack-yr hx', 50);
 
   if (F) {
     if (age >= 40 && age <= 74) add('CANCER SCREENING', 'Breast: mammogram Q1-2y; BRCA counseling if +FHx', 40);
     else if (age > 74) add('CANCER SCREENING', 'Breast: individualize; BRCA counseling if +FHx', 75);
-    else add('CANCER SCREENING', 'Breast: consider BRCA counseling if +FHx', 0);
+    else add('CANCER SCREENING', 'Breast: consider BRCA counseling if +FHx', 0, 'once');
   }
 
   if (F) {
     if (age >= 21 && age <= 24) add('CANCER SCREENING', 'Cervical: Pap Q3y', 21);
     else if (age >= 25 && age <= 65) add('CANCER SCREENING', 'Cervical: hrHPV Q5y (pref), co-test Q5y, or Pap Q3y', 25);
-    else if (age > 65) add('CANCER SCREENING', 'Cervical: d/c if adequate prior neg screening', 66);
+    else if (age > 65) add('CANCER SCREENING', 'Cervical: d/c if adequate prior neg screening', 66, 'once');
   }
 
   if (M) {
-    if (age >= 70) add('CANCER SCREENING', 'Prostate: recommend against PSA (age ≥70)', 70);
+    if (age >= 70) add('CANCER SCREENING', 'Prostate: recommend against PSA (age ≥70)', 70, 'once');
     else if (age >= 55) add('CANCER SCREENING', 'Prostate: SDM re PSA if life expectancy ≥10y (Q2y if <2.5, Q1y if ≥2.5)', 55);
     else if (age >= 50) add('CANCER SCREENING', 'Prostate: discuss PSA risk/benefit Q1-2y if life expectancy ≥10y', 50);
-    else if (age >= 45) add('CANCER SCREENING', 'Prostate: discuss PSA if FHx (1st-degree dx <65) or AA', 45);
-    else if (age >= 40) add('CANCER SCREENING', 'Prostate: discuss PSA only if strong FHx (>1 1st-degree w/ early CA)', 40);
+    else if (age >= 45) add('CANCER SCREENING', 'Prostate: discuss PSA if FHx (1st-degree dx <65) or AA', 45, 'once');
+    else if (age >= 40) add('CANCER SCREENING', 'Prostate: discuss PSA only if strong FHx (>1 1st-degree w/ early CA)', 40, 'once');
   }
 
-  if (M && age >= 65 && age <= 75) add('CANCER SCREENING', 'AAA: one-time US if +tobacco hx', 65);
+  if (M && age >= 65 && age <= 75) add('CANCER SCREENING', 'AAA: one-time US if +tobacco hx', 65, 'once');
 
   if (M) {
     if (age >= 45) add('CANCER SCREENING', 'Anal CA (if MSM): anal Pap Q1y if HIV+; Q2-3y if HIV−', 45);
@@ -297,23 +388,23 @@ function generate() {
   }
 
   // ── INFECTIOUS DISEASE ──
-  if (age >= 15 && age <= 65) add('INFECTIOUS DISEASE', 'HIV: screen at least once; repeat per risk', 0);
-  else if (age > 65) add('INFECTIOUS DISEASE', 'HIV: screen per risk assessment', 66);
+  if (age >= 15 && age <= 65) add('INFECTIOUS DISEASE', 'HIV: screen at least once; repeat per risk', 0, 'once');
+  else if (age > 65) add('INFECTIOUS DISEASE', 'HIV: screen per risk assessment', 66, 'once');
 
-  if (age >= 18 && age <= 79) add('INFECTIOUS DISEASE', 'HCV: screen at least once; repeat per risk', 0);
+  if (age >= 18 && age <= 79) add('INFECTIOUS DISEASE', 'HCV: screen at least once; repeat per risk', 0, 'once');
 
-  add('INFECTIOUS DISEASE', 'HBV: screen if RFs (endemic region, HD, HIV+, IVDU, MSM)', 0);
-  add('INFECTIOUS DISEASE', 'Latent TB: screen if born/lived in high-risk country or setting', 0);
-  add('INFECTIOUS DISEASE', 'Syphilis: screen if increased risk', 0);
+  add('INFECTIOUS DISEASE', 'HBV: screen if RFs (endemic region, HD, HIV+, IVDU, MSM)', 0, 'once');
+  add('INFECTIOUS DISEASE', 'Latent TB: screen if born/lived in high-risk country or setting', 0, 'once');
+  add('INFECTIOUS DISEASE', 'Syphilis: screen if increased risk', 0, 'once');
 
   if (F && age <= 24) add('INFECTIOUS DISEASE', 'GC/CT: screen annually (age ≤24)', 0);
-  else if (F) add('INFECTIOUS DISEASE', 'GC/CT: screen per risk assessment', 25);
+  else if (F) add('INFECTIOUS DISEASE', 'GC/CT: screen per risk assessment', 25, 'once');
 
   if (M) add('INFECTIOUS DISEASE', 'STIs (if MSM): Q1y; Q3-6mo if high-risk; offer PrEP if at risk for HIV', 0);
 
   // ── BEHAVIORAL HEALTH ──
   add('BEHAVIORAL HEALTH', 'Depression: PHQ-2 annually', 0);
-  if (age >= 19 && age <= 64) add('BEHAVIORAL HEALTH', 'Anxiety: screen (GAD-2/GAD-7)', 0);
+  if (age >= 19 && age <= 64) add('BEHAVIORAL HEALTH', 'Anxiety: screen (GAD-2/GAD-7)', 0, 'once');
   add('BEHAVIORAL HEALTH', 'Alcohol: AUDIT-C', 0);
   add('BEHAVIORAL HEALTH', 'Tobacco: assess every visit; counsel cessation', 0);
   add('BEHAVIORAL HEALTH', 'Drug use: screen via questioning', 0);
@@ -321,10 +412,10 @@ function generate() {
   if (age >= 50) add('BEHAVIORAL HEALTH', 'IPV/elder abuse: consider screening', 50);
 
   // ── OTHER PREVENTIVE CARE ──
-  if (F && age >= 65) add('OTHER PREVENTIVE CARE', 'Osteoporosis: DXA', 65);
-  else if (F && age >= 50) add('OTHER PREVENTIVE CARE', 'Osteoporosis: consider DXA based on FRAX', 50);
-  if (M && age >= 70) add('OTHER PREVENTIVE CARE', 'Osteoporosis: DXA', 70);
-  else if (M && age >= 50) add('OTHER PREVENTIVE CARE', 'Osteoporosis: consider if RFs (low weight, fracture hx, smoking)', 50);
+  if (F && age >= 65) add('OTHER PREVENTIVE CARE', 'Osteoporosis: DXA', 65, 'once');
+  else if (F && age >= 50) add('OTHER PREVENTIVE CARE', 'Osteoporosis: consider DXA based on FRAX', 50, 'once');
+  if (M && age >= 70) add('OTHER PREVENTIVE CARE', 'Osteoporosis: DXA', 70, 'once');
+  else if (M && age >= 50) add('OTHER PREVENTIVE CARE', 'Osteoporosis: consider if RFs (low weight, fracture hx, smoking)', 50, 'once');
 
   if (age >= 65) add('OTHER PREVENTIVE CARE', 'Fall risk: screen annually; PT, vitamin D', 65);
 
@@ -338,20 +429,39 @@ function generate() {
   add('IMMUNIZATIONS', 'COVID-19: updated (2024-25) formula', 0);
   add('IMMUNIZATIONS', age >= 65 ? 'Influenza: annual high-dose' : 'Influenza: annual', age >= 65 ? 65 : 0);
   add('IMMUNIZATIONS', 'Tdap/Td: booster Q10y', 0);
-  if (age >= 60) add('IMMUNIZATIONS', 'RSV: recommended', 60);
-  if (age >= 50) add('IMMUNIZATIONS', 'Shingrix (RZV): 2 doses 2-6mo apart', 50);
-  if (age <= 26) add('IMMUNIZATIONS', 'HPV: complete 2-3 dose series if not done', 0);
-  else if (age <= 45) add('IMMUNIZATIONS', 'HPV: SDM if not completed (ages 27-45)', 27);
-  if (age >= 65) add('IMMUNIZATIONS', 'PCV20: 1 dose if not vaccinated (or PCV15 → PPSV23)', 65);
-  else add('IMMUNIZATIONS', 'PCV20: if RFs (heart/lung/kidney/liver dz, DM, smoking, immunocomp)', 0);
-  if (age <= 59) add('IMMUNIZATIONS', 'Hep B: complete series if not done (universal 19-59)', 0);
-  else add('IMMUNIZATIONS', 'Hep B: if RFs (travel, HCV, HIV, IVDU, sexual exposure, DM)', 60);
-  add('IMMUNIZATIONS', 'Hep A: if RFs (travel, HIV, MSM, drug use, chronic liver dz)', 0);
-  if (birthYear >= 1957) add('IMMUNIZATIONS', 'MMR: 1-2 doses if not immune (born ≥1957)', 0);
-  if (birthYear >= 1980) add('IMMUNIZATIONS', 'Varicella: 2 doses if not immune (born ≥1980)', 0);
-  add('IMMUNIZATIONS', 'Meningococcal: if asplenia, HIV, complement def, travel, dorms', 0);
+  if (age >= 60) add('IMMUNIZATIONS', 'RSV: recommended', 60, 'once');
+  if (age >= 50) add('IMMUNIZATIONS', 'Shingrix (RZV): 2 doses 2-6mo apart', 50, 'once');
+  if (age <= 26) add('IMMUNIZATIONS', 'HPV: complete 2-3 dose series if not done', 0, 'once');
+  else if (age <= 45) add('IMMUNIZATIONS', 'HPV: SDM if not completed (ages 27-45)', 27, 'once');
+  if (age >= 65) add('IMMUNIZATIONS', 'PCV20: 1 dose if not vaccinated (or PCV15 → PPSV23)', 65, 'once');
+  else add('IMMUNIZATIONS', 'PCV20: if RFs (heart/lung/kidney/liver dz, DM, smoking, immunocomp)', 0, 'once');
+  if (age <= 59) add('IMMUNIZATIONS', 'Hep B: complete series if not done (universal 19-59)', 0, 'once');
+  else add('IMMUNIZATIONS', 'Hep B: if RFs (travel, HCV, HIV, IVDU, sexual exposure, DM)', 60, 'once');
+  add('IMMUNIZATIONS', 'Hep A: if RFs (travel, HIV, MSM, drug use, chronic liver dz)', 0, 'once');
+  if (birthYear >= 1957) add('IMMUNIZATIONS', 'MMR: 1-2 doses if not immune (born ≥1957)', 0, 'once');
+  if (birthYear >= 1980) add('IMMUNIZATIONS', 'Varicella: 2 doses if not immune (born ≥1980)', 0, 'once');
+  add('IMMUNIZATIONS', 'Meningococcal: if asplenia, HIV, complement def, travel, dorms', 0, 'once');
+
+  // Sort within each section: routine first, then one-time
+  const sections = [];
+  let curSect = null;
+  for (const item of items) {
+    if (item.section !== curSect) {
+      sections.push({ name: item.section, items: [] });
+      curSect = item.section;
+    }
+    sections[sections.length - 1].items.push(item);
+  }
+  items = [];
+  for (const s of sections) {
+    const routine = s.items.filter(i => i.freq === 'routine');
+    const once = s.items.filter(i => i.freq === 'once');
+    for (const i of routine) { i.id = items.length; items.push(i); }
+    for (const i of once) { i.id = items.length; items.push(i); }
+  }
 
   renderItems();
+  updatePaste();
 }
 
 function renderItems() {
@@ -359,18 +469,25 @@ function renderItems() {
   const el = document.getElementById('output');
   let html = '';
   let sect = null;
+  let lastFreq = null;
 
   for (const item of items) {
     if (item.section !== sect) {
       if (sect !== null) html += '</div>';
       html += '<div class="section"><div class="section-title">' + item.section + '</div>';
       sect = item.section;
+      lastFreq = null;
+    }
+    if (item.freq !== lastFreq) {
+      html += '<div class="freq-label">' + (item.freq === 'routine' ? 'Routine' : 'One-time / PRN') + '</div>';
+      lastFreq = item.freq;
     }
     const isNew = item.newAt > 0 && currentAge === item.newAt;
     html += '<div class="item' + (isNew ? ' is-new' : '') + '" id="item-' + item.id + '">'
       + '<div class="item-btns">'
-      + '<button class="btn-done" onclick="toggleDone(' + item.id + ')" title="Mark done">✓</button>'
-      + '<button class="btn-defer" onclick="toggleDefer(' + item.id + ')" title="Deferred">D</button>'
+      + '<button class="btn-done" onclick="setStatus(' + item.id + ',\'done\')" title="Completed today">✓</button>'
+      + '<button class="btn-past" onclick="setStatus(' + item.id + ',\'past\')" title="Completed past">P</button>'
+      + '<button class="btn-defer" onclick="setStatus(' + item.id + ',\'deferred\')" title="Deferred">D</button>'
       + '</div>'
       + '<div class="item-body">'
       + '<div class="item-top">'
@@ -378,7 +495,7 @@ function renderItems() {
       + (isNew ? ' <span class="badge-new">NEW at ' + item.newAt + '</span>' : '')
       + ' <span class="status-tag" id="stag-' + item.id + '"></span>'
       + '</div>'
-      + '<input class="item-notes" id="notes-' + item.id + '" placeholder="notes...">'
+      + '<input class="item-notes" id="notes-' + item.id + '" placeholder="notes..." oninput="updatePaste()">'
       + '</div></div>';
   }
   if (sect !== null) html += '</div>';
